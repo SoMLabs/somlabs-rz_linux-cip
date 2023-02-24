@@ -1,0 +1,349 @@
+// SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
+/*
+ * Device Tree Source for VisionSOM-x2L carrier board
+ *
+ * Copyright (C) 2023 Somlabs
+ */
+
+#include <dt-bindings/gpio/gpio.h>
+
+/ {
+	leds {	/* dedicated led for system status */
+		compatible = "gpio-leds";
+
+		status {
+			label = "status";
+			gpios = <&pinctrl RZG2L_GPIO(42, 0) GPIO_ACTIVE_HIGH>;
+			linux,default-trigger = "heartbeat";
+		};
+
+		led-io-04 {
+			label = "LED-IO-P45.2";
+			gpios = <&pinctrl RZG2L_GPIO(45, 2) GPIO_ACTIVE_HIGH>;
+			default-state = "off";
+		};
+		led-io-05 {
+			label = "LED-IO-P45.3";
+			gpios = <&pinctrl RZG2L_GPIO(45, 3) GPIO_ACTIVE_HIGH>;
+			default-state = "off";
+		};
+		led-io-06 {
+			label = "LED-IO-P46.1";
+			gpios = <&pinctrl RZG2L_GPIO(46, 1) GPIO_ACTIVE_HIGH>;
+			default-state = "off";
+		};
+		led-io-07 {
+			label = "LED-IO-P46.0";
+			gpios = <&pinctrl RZG2L_GPIO(46, 0) GPIO_ACTIVE_HIGH>;
+			default-state = "off";
+		};
+	};
+
+	gpio_buttons: gpio_buttons0 {
+		compatible = "gpio-keys-polled";
+		poll-interval = <10>;
+
+		switch1 {
+			label = "SW-P45.1";
+			linux,code = <0x100>;
+			gpios = <&pinctrl RZG2L_GPIO(45, 1) GPIO_ACTIVE_LOW>;
+		};
+
+		switch2 {
+			label = "SW-P3.1";
+			linux,code = <0x101>;
+			gpios = <&pinctrl RZG2L_GPIO(3, 1) GPIO_ACTIVE_LOW>;
+		};
+
+		switch3 {
+			label = "SW-P1.0";
+			linux,code = <0x102>;
+			gpios = <&pinctrl RZG2L_GPIO(1, 0) GPIO_ACTIVE_LOW>;
+			//wakeup-source;
+		};
+
+		switch4 {
+			label = "SW-P3.0";
+			linux,code = <0x103>;
+			gpios = <&pinctrl RZG2L_GPIO(3, 0) GPIO_ACTIVE_LOW>;
+		};
+	};
+
+	snd_rzg2l: sound {
+		compatible = "simple-audio-card";
+		simple-audio-card,name = "nau8822";
+
+		simple-audio-card,widgets =
+			"Headphones", "Headphones",
+			"Microphone", "Mic In";
+		simple-audio-card,routing =
+			"Headphones", "LHP",
+			"Headphones", "RHP",
+			"LMICP",    "Mic In",
+			"RMICP",    "Mic In";
+
+		simple-audio-card,format = "i2s";
+		simple-audio-card,bitclock-master = <&cpu_dai>;
+		simple-audio-card,frame-master = <&cpu_dai>;
+		simple-audio-card,mclk-fs = <256>;
+
+		cpu_dai: simple-audio-card,cpu {
+			sound-dai = <&ssi0>;
+		};
+
+		codec_dai: simple-audio-card,codec {
+			sound-dai = <&codec_nau8822>;
+			clocks = <&audio_clk>;
+		};
+	};
+
+	audio_clk: audio-clock {
+		compatible = "fixed-clock";
+		#clock-cells = <0>;
+		clock-frequency = <12288000>;
+	};
+
+	x1_clk: x1-clock {
+		compatible = "fixed-clock";
+		#clock-cells = <0>;
+		clock-frequency = <24000000>;
+	};
+};
+
+&audio_clk1{
+	clock-frequency = <12288000>;
+};
+
+&ssi0 {
+	status = "okay";
+};
+
+&i2c0 {
+	status = "okay";
+};
+
+&i2c1 {
+	status = "okay";
+
+	ov5640: camera@3c {
+		compatible = "ovti,ov5640";
+		reg = <0x3c>;
+		clock-names = "xclk";
+		clocks = <&clk_ext_camera>;
+		clock-frequency = <24000000>;
+
+		reset-gpios = <&pinctrl RZG2L_GPIO(17, 0) GPIO_ACTIVE_LOW>;
+		powerdown-gpios = <&pinctrl RZG2L_GPIO(15, 1) GPIO_ACTIVE_HIGH>;
+
+		port {
+			ov5640_to_csi: endpoint {
+				clock-lanes = <0>;
+				data-lanes = <1 2>;
+				remote-endpoint = <&csi2_in>;
+			};
+		};
+	};
+
+	ph720128t003_touch: edt-ft5x06@38 {
+		compatible = "edt,edt-ft5406", "edt,edt-ft5x06";
+		reg = <0x38>;
+		interrupt-parent = <&pinctrl>;
+		interrupts = <RZG2L_GPIO(17, 1) IRQ_TYPE_EDGE_FALLING>; /* GPIO17.1 */
+		reset-gpios = <&pinctrl RZG2L_GPIO(17, 2) GPIO_ACTIVE_LOW>;
+		touchscreen-size-x = <720>;
+		touchscreen-size-y = <1280>;
+	};
+};
+
+&i2c2 {
+	status = "okay";
+	clock-frequency = <400000>;
+
+	codec_nau8822: nau8822@1a {
+		compatible = "nuvoton,nau8822";
+		reg = <0x1a>;
+		#sound-dai-cells = <0>;
+	};
+};
+
+&cru {
+	status = "okay";
+};
+
+&csi2 {
+	status = "okay";
+
+	ports {
+		port {
+			csi2_in: endpoint {
+				clock-lanes = <0>;
+				data-lanes = <1 2>;
+				remote-endpoint = <&ov5640_to_csi>;
+			};
+		};
+	};
+};
+
+&du {
+	status = "okay";
+};
+
+&dsi0 {
+	status = "okay";
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+		port@1 {
+			dsi0_out: endpoint {
+				remote-endpoint = <&panel_in>;
+				data-lanes = <1 2>;
+			};
+		};
+	};
+
+	panel@0 {
+		compatible = "powertip,ph720128t003";
+		reg = <0>;
+		reset-gpios = <&pinctrl RZG2L_GPIO(13, 2) GPIO_ACTIVE_LOW>;
+		status = "okay";
+		//backlight = <&panel_backlight>;
+
+		port {
+			panel_in: endpoint {
+				remote-endpoint = <&dsi0_out>;
+			};
+		};
+
+	};
+};
+
+&eth0 {
+	pinctrl-0 = <&eth0_pins>;
+	pinctrl-names = "default";
+	phy-handle = <&phy0>;
+	phy-mode = "rgmii-id";
+	status = "okay";
+
+	phy0: ethernet-phy@0 {
+		compatible = "ethernet-phy-id0022.1640",
+			     "ethernet-phy-ieee802.3-c22";
+		reg = <0>;
+		rxc-skew-psec = <2400>;
+		txc-skew-psec = <2400>;
+		rxdv-skew-psec = <0>;
+		txdv-skew-psec = <0>;
+		rxd0-skew-psec = <0>;
+		rxd1-skew-psec = <0>;
+		rxd2-skew-psec = <0>;
+		rxd3-skew-psec = <0>;
+		txd0-skew-psec = <0>;
+		txd1-skew-psec = <0>;
+		txd2-skew-psec = <0>;
+		txd3-skew-psec = <0>;
+
+		interrupt-parent = <&pinctrl>;
+		interrupts = <RZG2L_GPIO(47, 0) IRQ_TYPE_LEVEL_LOW>; /* GPIO47.0 */
+
+		phy-reset-gpios = <&pinctrl RZG2L_GPIO(47, 1) GPIO_ACTIVE_LOW>; /* GPIO47.1 */
+		phy-reset-duration = <10>;
+		phy-reset-post-delay = <50>;
+
+	};
+};
+
+&eth1 {
+	pinctrl-0 = <&eth1_pins>;
+	pinctrl-names = "default";
+	phy-handle = <&phy1>;
+	phy-mode = "rgmii-id";
+	status = "disabled";
+
+	phy1: ethernet-phy@1 {
+		compatible = "ethernet-phy-id0022.1640",
+			     "ethernet-phy-ieee802.3-c22";
+		reg = <1>;
+		rxc-skew-psec = <2400>;
+		txc-skew-psec = <2400>;
+		rxdv-skew-psec = <0>;
+		txdv-skew-psec = <0>;
+		rxd0-skew-psec = <0>;
+		rxd1-skew-psec = <0>;
+		rxd2-skew-psec = <0>;
+		rxd3-skew-psec = <0>;
+		txd0-skew-psec = <0>;
+		txd1-skew-psec = <0>;
+		txd2-skew-psec = <0>;
+		txd3-skew-psec = <0>;
+
+		interrupt-parent = <&pinctrl>;
+		interrupts = <RZG2L_GPIO(1, 1) IRQ_TYPE_LEVEL_LOW>;
+	};
+};
+
+&scif3 {
+	rts-gpios = <&pinctrl RZG2L_GPIO(18, 0) GPIO_ACTIVE_LOW>; /* P18_0 */
+
+	linux,rs485-enabled-at-boot-time;
+	status = "okay";
+};
+
+&canfd {
+	pinctrl-0 = <&can0_pins>;
+	status = "okay";
+
+	channel0 {
+		status = "okay";
+	};
+};
+
+&adc {
+	status = "okay";
+};
+
+/* enable USB interfaces*/
+&ehci0 {
+	dr_mode = "otg";
+	status = "okay";
+};
+
+&ohci0 {
+	dr_mode = "otg";
+	status = "okay";
+};
+
+&hsusb {
+	dr_mode = "otg";
+	status = "okay";
+};
+
+&usb2_phy0 {
+	status = "okay";
+};
+
+&ehci1 {
+	status = "okay";
+};
+
+&ohci1 {
+	status = "okay";
+};
+
+&usb2_phy1 {
+	status = "okay";
+};
+
+&phyrst {
+	status = "okay";
+};
+
+/* SPI interfaces */
+&spi0 {
+	status = "okay";
+};
+
+&spi1 {
+	status = "okay";
+};

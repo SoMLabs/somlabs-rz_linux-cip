@@ -1,0 +1,14 @@
+// SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
+/*
+ * Device Tree Source for VisionSOM-G2L SOM on reference carrier board
+ *
+ * Copyright (C) 2023 Somlabs
+ */
+
+/dts-v1/;
+#include "visionsom-g2l.dtsi"
+#include "visionsom-x2l-cb.dtsi"
+
+/ {
+	model = "Somlabs VisionSOM-G2L/CB";
+};
