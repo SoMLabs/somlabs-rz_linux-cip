@@ -97,3 +97,7 @@ dtb-$(CONFIG_ARCH_R9A07G044) += r9a07g054l2-dev.dtb
 
 dtb-$(CONFIG_ARCH_R9A09G011) += r9a09g011-v2mevk2.dtb
 dtb-$(CONFIG_ARCH_R9A09G055) += r9a09g055-v2maevk2.dtb
+dtb-$(CONFIG_ARCH_R9A07G054) += r9a07g054l2-dev.dtb
+
+dtb-$(CONFIG_ARCH_R9A07G044) += visionsom-g2l-cb.dtb
+dtb-$(CONFIG_ARCH_R9A07G044) += visionsom-v2l-cb.dtb
