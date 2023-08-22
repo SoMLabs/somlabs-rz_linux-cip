@@ -144,14 +144,12 @@
 		};
 	};
 
-	ph720128t003_touch: edt-ft5x06@38 {
-		compatible = "edt,edt-ft5406", "edt,edt-ft5x06";
-		reg = <0x38>;
+	ili2132a_touch: ili2132a@41 {
+		compatible = "ilitek,ili2132";
+		reg = <0x41>;
 		interrupt-parent = <&pinctrl>;
-		interrupts = <RZG2L_GPIO(17, 1) IRQ_TYPE_EDGE_FALLING>; /* GPIO17.1 */
+		interrupts = <RZG2L_GPIO(17, 1) IRQ_TYPE_EDGE_FALLING>;
 		reset-gpios = <&pinctrl RZG2L_GPIO(17, 2) GPIO_ACTIVE_LOW>;
-		touchscreen-size-x = <720>;
-		touchscreen-size-y = <1280>;
 	};
 };
 
@@ -205,7 +203,8 @@
 	};
 
 	panel@0 {
-		compatible = "powertip,ph720128t003";
+		compatible = "riverdi,rvt70hsmnwc00";
+
 		reg = <0>;
 		reset-gpios = <&pinctrl RZG2L_GPIO(13, 2) GPIO_ACTIVE_LOW>;
 		status = "okay";
