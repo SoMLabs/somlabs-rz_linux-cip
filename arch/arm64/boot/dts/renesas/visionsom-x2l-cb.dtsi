@@ -291,6 +291,7 @@
 
 &canfd {
 	pinctrl-0 = <&can0_pins>;
+	renesas,no-can-fd;
 	status = "okay";
 
 	channel0 {
