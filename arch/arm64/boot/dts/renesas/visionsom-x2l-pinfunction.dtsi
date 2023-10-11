@@ -183,4 +183,7 @@
 		};
 	};
 
+	gpt5_pins: gpt5 {
+		pinmux = <RZG2L_PORT_PINMUX(16, 0, 3)>;
+	};
 };
