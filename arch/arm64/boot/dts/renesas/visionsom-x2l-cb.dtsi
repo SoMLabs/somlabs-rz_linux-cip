@@ -108,6 +108,15 @@
 		#clock-cells = <0>;
 		clock-frequency = <24000000>;
 	};
+
+	panel_backlight: panel-backlight {
+		compatible = "pwm-backlight";
+		pwms = <&gpt5 0 50000>;
+
+		brightness-levels = <255 128 64 32 16 8 2 0>;
+		default-brightness-level = <6>;
+		enable-gpios = <&pinctrl RZG2L_GPIO(16, 1) GPIO_ACTIVE_HIGH>;
+	};
 };
 
 &audio_clk1{
@@ -208,7 +217,7 @@
 		reg = <0>;
 		reset-gpios = <&pinctrl RZG2L_GPIO(13, 2) GPIO_ACTIVE_LOW>;
 		status = "okay";
-		//backlight = <&panel_backlight>;
+		backlight = <&panel_backlight>;
 
 		port {
 			panel_in: endpoint {
@@ -300,6 +309,13 @@
 };
 
 &adc {
+	status = "okay";
+};
+
+&gpt5 {
+	pinctrl-0 = <&gpt5_pins>;
+	pinctrl-names = "default";
+	channel = "channel_A";
 	status = "okay";
 };
 
